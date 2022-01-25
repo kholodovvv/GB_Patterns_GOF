@@ -1,0 +1,13 @@
+# ninja log v5
+0	1401	1643030693871071788	CMakeFiles/SBomber.dir/src/Bomb.cpp.o	d60a770f3e677371
+9	1404	1643030693875071841	CMakeFiles/SBomber.dir/src/Crater.cpp.o	a5c85523e9c221c0
+1404	2534	1643030695003086936	CMakeFiles/SBomber.dir/src/House.cpp.o	eb6739110682f7b9
+0	1075	1643030795732416728	CMakeFiles/SBomber.dir/src/Ground.cpp.o	14c3e2d6fe582216
+1	1598	1643030821400750323	CMakeFiles/SBomber.dir/src/LevelGUI.cpp.o	15bdd50340916f1c
+20	2528	1643030822332762399	CMakeFiles/SBomber.dir/src/MyTools.cpp.o	47800349a10ff809
+1599	3638	1643030823440776749	CMakeFiles/SBomber.dir/src/Plane.cpp.o	8cac3ca9ce748eea
+2528	7125	1643030826928821915	CMakeFiles/SBomber.dir/src/SBomber.cpp.o	e0b5b90c689c4cb0
+1	896	1643031003611068403	CMakeFiles/SBomber.dir/src/ScreenSingleton.cpp.o	6090e6a6a89ae072
+1	817	1643031043631567609	CMakeFiles/SBomber.dir/src/Tank.cpp.o	c0e4a31aa9c116ae
+2	955	1643031043763569253	CMakeFiles/SBomber.dir/src/main.cpp.o	da728f8abcb00c0e
+955	1401	1643031044211574829	SBomber	762ac8f9e7fa8389
