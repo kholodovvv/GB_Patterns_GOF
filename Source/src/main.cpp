@@ -38,7 +38,9 @@ int _kbhit() {
 
 
 int main(void) {
-  MyTools::OpenLogFile("log.txt");
+  //MyTools::OpenLogFile("log.txt");
+    //FileLoggerSingletone::getInstance().OpenLogFile("log.txt"); //Вызов метода через реальный объект
+    ProxyLoggerSingletone::getInstance().OpenLogFile("log.txt");
 
   SBomber game;
 
@@ -59,7 +61,8 @@ int main(void) {
 
   } while (!game.GetExitFlag());
 
-  MyTools::CloseLogFile();
-
+  //MyTools::CloseLogFile();
+  //FileLoggerSingletone::getInstance().CloseLogFile(); //Вызов метода через реальный объект
+  ProxyLoggerSingletone::getInstance().CloseLogFile();
   return 0;
 }
