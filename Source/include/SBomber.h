@@ -8,6 +8,8 @@
 #include "Ground.h"
 #include "Tank.h"
 
+class Command;
+
 class SBomber
 {
 public:
@@ -42,6 +44,8 @@ private:
 
     void DropBomb();
 
+    void CommandExecuter(Command* pCommand);
+
     std::vector<DynamicObject*> vecDynamicObj;
     std::vector<GameObject*> vecStaticObj;
     
@@ -52,35 +56,57 @@ private:
     int16_t score;
 };
 
-/*class BaseCommand{
-protected:
-    SBomber* obj;
-
+class Command{
 public:
-    virtual ~BaseCommand(){}
     virtual void Execute() = 0;
-
-    void SetParams(SBomber* object){
-        obj = object;
-    }
-
+    virtual ~Command() = default;
 };
 
-class DeleteDynamicObj: public BaseCommand{
-    DynamicObject *dObject;
-    vecDynamicObj *vecDyn;
-
+class DeleteDynamicObject: public Command{
 public:
-    DeleteDynamicObj(DynamicObject *dynObj, vecDynamicObj *vDyn): dObject(dynObj), vecDyn(vDyn){}
 
-    void Execute() override{
-        auto it = vecDynamicObj.begin();
-        for (; it != vecDynamicObj.end(); it++) {
-            if (*it == pObj) {
-                vecDynamicObj.erase(it);
-                break;
-            }
-        }
+    virtual void Execute() override;
+
+    void setParams(std::vector<DynamicObject*>& vecDynamicObj, DynamicObject* dObj){
+        this->vecDynamicObj_ = &vecDynamicObj;
+        this->dObject = dObj;
     }
 
-};*/
+private:
+    std::vector<DynamicObject*>* vecDynamicObj_;
+    DynamicObject* dObject;
+};
+
+class DeleteStaticObject: public Command{
+public:
+
+    virtual void Execute() override;
+
+    void setParams(std::vector<GameObject*> &vecStaticObj, GameObject* gObj){
+        this->vecStaticObj_ = &vecStaticObj;
+        this->gObject = gObj;
+    }
+
+private:
+    std::vector<GameObject*>* vecStaticObj_;
+    GameObject* gObject;
+};
+
+class DropBombs: public Command{
+public:
+
+    virtual void Execute() override;
+
+    void setParams(uint16_t &bNumber, const Plane* Plane_, std::vector<DynamicObject*> &vecDynamicObject, int16_t &Score){
+        this->vecDynamicObj_ = &vecDynamicObject;
+        this->plane = Plane_;
+        this->score = &Score;
+        this->bombNumber = &bNumber;
+    }
+
+private:
+    uint16_t* bombNumber;
+    const Plane* plane;
+    std::vector<DynamicObject*>* vecDynamicObj_;
+    int16_t* score;
+};

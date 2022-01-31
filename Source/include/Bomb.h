@@ -2,15 +2,33 @@
 
 #include "DynamicObject.h"
 
+
 class Bomb : public DynamicObject
 {
 public:
 
-	static const uint16_t BombCost = 10; // стоимость бомбы в очках
+	static const uint16_t BombCost = 10; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
 
 	void Draw() const override;
 
 private:
 
+};
+
+class BombDecorator : public DynamicObject{
+public:
+
+    BombDecorator(Bomb* bomb) : pBomb(bomb){}
+
+    void Draw() const override;
+
+    void Move(uint16_t time) override;
+
+    ~BombDecorator(){
+        delete pBomb;
+    }
+
+protected:
+    Bomb* pBomb;
 };
 

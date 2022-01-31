@@ -9,6 +9,7 @@
 #include "enums/CraterSize.h"
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 SBomber::SBomber()
   : exitFlag(false), startTime(0), finishTime(0), deltaTime(0), passedTime(0),
@@ -132,24 +133,58 @@ void SBomber::CheckDestoyableObjects(Bomb* pBomb) {
   }
 }
 
+void SBomber::CommandExecuter(Command* pCommand){
+    pCommand->Execute();
+    delete pCommand;
+}
+
 void SBomber::DeleteDynamicObj(DynamicObject* pObj) {
-  auto it = vecDynamicObj.begin();
+  /*auto it = vecDynamicObj.begin();
   for (; it != vecDynamicObj.end(); it++) {
     if (*it == pObj) {
       vecDynamicObj.erase(it);
       break;
     }
-  }
+  }*/
+
+  DeleteDynamicObject* dlt = new DeleteDynamicObject();
+  dlt->setParams(vecDynamicObj, pObj);
+  SBomber::CommandExecuter(dlt);
+}
+
+void DeleteDynamicObject::Execute(){
+    auto it = vecDynamicObj_->begin();
+    for (; it != vecDynamicObj_->end(); it++) {
+        if (*it == dObject) {
+            vecDynamicObj_->erase(it);
+            break;
+        }
+    }
+}
+
+void DeleteStaticObject::Execute() {
+    auto it = vecStaticObj_->begin();
+    for (; it != vecStaticObj_->end(); it++) {
+        if (*it == gObject) {
+            vecStaticObj_->erase(it);
+            break;
+        }
+    }
 }
 
 void SBomber::DeleteStaticObj(GameObject* pObj) {
-  auto it = vecStaticObj.begin();
+  /*auto it = vecStaticObj.begin();
   for (; it != vecStaticObj.end(); it++) {
     if (*it == pObj) {
       vecStaticObj.erase(it);
       break;
     }
-  }
+  }*/
+
+    DeleteStaticObject* dso = new DeleteStaticObject();
+    dso->setParams(vecStaticObj, pObj);
+    SBomber::CommandExecuter(dso);
+
 }
 
 std::vector<DestroyableGroundObject*> SBomber::FindDestoyableGroundObjects() const {
@@ -298,7 +333,7 @@ void SBomber::TimeFinish() {
 }
 
 void SBomber::DropBomb() {
-  if (bombsNumber > 0) {
+/*  if (bombsNumber > 0) {
     //MyTools::WriteToLog(std::string(__func__) + " was invoked");
     ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
 
@@ -306,7 +341,8 @@ void SBomber::DropBomb() {
     double x = pPlane->GetX() + 4;
     double y = pPlane->GetY() + 2;
 
-    Bomb* pBomb = new Bomb;
+    //Bomb* pBomb = new Bomb;
+    BombDecorator *pBomb = new BombDecorator(new Bomb);
     pBomb->SetDirection(0.3, 1);
     pBomb->SetSpeed(2);
     pBomb->SetPos(x, y);
@@ -315,38 +351,30 @@ void SBomber::DropBomb() {
     vecDynamicObj.push_back(pBomb);
     bombsNumber--;
     score -= Bomb::BombCost;
-  }
+  }*/
+
+ const Plane* pPlane = FindPlane();
+ DropBombs* drp = new DropBombs();
+ drp->setParams(bombsNumber, pPlane, vecDynamicObj, score);
+ CommandExecuter(drp);
 }
 
-class BaseCommand{
-protected:
-    SBomber* obj;
+void DropBombs::Execute() {
+    if (*bombNumber > 0) {
 
-public:
-    virtual ~BaseCommand(){}
-    virtual void Execute() = 0;
+        ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
 
-    void SetParams(SBomber* object){
-        obj = object;
+        double x = plane->GetX() + 4;
+        double y = plane->GetY() + 2;
+
+        BombDecorator *pBomb = new BombDecorator(new Bomb);
+        pBomb->SetDirection(0.3, 1);
+        pBomb->SetSpeed(2);
+        pBomb->SetPos(x, y);
+        pBomb->SetWidth(SMALL_CRATER_SIZE);
+
+        vecDynamicObj_->push_back(pBomb);
+        *bombNumber--;
+        *score -= Bomb::BombCost;
     }
-
-};
-
-/*class DeleteDynamicObj: public BaseCommand{
-    DynamicObject *dObject;
-    vecDynamicObj *vecDyn;
-
-public:
-    DeleteDynamicObj(DynamicObject *dynObj, vecDynamicObj *vDyn): dObject(dynObj), vecDyn(vDyn){}
-
-    void Execute() override{
-        auto it = vecDynamicObj.begin();
-        for (; it != vecDynamicObj.end(); it++) {
-            if (*it == pObj) {
-                vecDynamicObj.erase(it);
-                break;
-            }
-        }
-    }
-
-};*/
+}
