@@ -41,15 +41,20 @@ SBomber::SBomber()
   pGr->SetWidth(width - 2);
   vecStaticObj.push_back(pGr);
 
-  Tank* pTank = new Tank;
+  TankAdapter* ptank = new TankAdapter;
+  ptank->SetWidth(13);
+  ptank->SetPos(30, groundY - 1);
+  vecStaticObj.push_back(ptank);
+
+  /*Tank* pTank = new Tank;
   pTank->SetWidth(13);
   pTank->SetPos(30, groundY - 1);
-  vecStaticObj.push_back(pTank);
+  vecStaticObj.push_back(pTank);*/
 
-  pTank = new Tank;
-  pTank->SetWidth(13);
-  pTank->SetPos(50, groundY - 1);
-  vecStaticObj.push_back(pTank);
+  ptank = new TankAdapter;
+  ptank->SetWidth(13);
+  ptank->SetPos(50, groundY - 1);
+  vecStaticObj.push_back(ptank);
 
   House* pHouse = new House;
   pHouse->SetWidth(13);
@@ -189,12 +194,12 @@ void SBomber::DeleteStaticObj(GameObject* pObj) {
 
 std::vector<DestroyableGroundObject*> SBomber::FindDestoyableGroundObjects() const {
   std::vector<DestroyableGroundObject*> vec;
-  Tank* pTank;
+  TankAdapter* ptank;
   House* pHouse;
   for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    pTank = dynamic_cast<Tank*>(vecStaticObj[i]);
-    if (pTank != nullptr) {
-      vec.push_back(pTank);
+    ptank = dynamic_cast<TankAdapter*>(vecStaticObj[i]);
+    if (ptank != nullptr) {
+      vec.push_back(ptank);
       continue;
     }
 
@@ -224,13 +229,13 @@ Ground* SBomber::FindGround() const {
 std::vector<Bomb*> SBomber::FindAllBombs() const {
   std::vector<Bomb*> vecBombs;
 
-  for (size_t i = 0; i < vecDynamicObj.size(); i++) {
-    Bomb* pBomb = dynamic_cast<Bomb*>(vecDynamicObj[i]);
-    if (pBomb != nullptr) {
-      vecBombs.push_back(pBomb);
-    }
+  BombIterator* it = new BombIterator(vecDynamicObj);
+
+  for(;it->cPos() != it->end(); it->next()){
+      vecBombs.push_back(it->get());
   }
 
+  delete it;
   return vecBombs;
 }
 
@@ -367,7 +372,8 @@ void DropBombs::Execute() {
         double x = plane->GetX() + 4;
         double y = plane->GetY() + 2;
 
-        BombDecorator *pBomb = new BombDecorator(new Bomb);
+        //BombDecorator *pBomb = new BombDecorator(new Bomb);
+        Bomb* pBomb = new Bomb;
         pBomb->SetDirection(0.3, 1);
         pBomb->SetSpeed(2);
         pBomb->SetPos(x, y);

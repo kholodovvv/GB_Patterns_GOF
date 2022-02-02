@@ -7,6 +7,7 @@
 #include "Bomb.h"
 #include "Ground.h"
 #include "Tank.h"
+#include <cassert>
 
 class Command;
 
@@ -109,4 +110,71 @@ private:
     const Plane* plane;
     std::vector<DynamicObject*>* vecDynamicObj_;
     int16_t* score;
+};
+
+
+class BombIterator{
+public:
+    BombIterator(std::vector<DynamicObject*> const &vecDynamicObject) : vecDynamicObj_(&vecDynamicObject){
+        assert(!isDone());
+        if (current == 0) first();
+    }
+
+    const std::vector<DynamicObject*>* begin(){
+        return vecDynamicObj_;
+    }
+
+    const std::vector<DynamicObject*>* end(){
+        return vecDynamicObj_ + vecDynamicObj_->size();
+    }
+
+    void next() {
+        current = step;
+
+        while (!isDone()) {
+            if (dynamic_cast<Bomb*>(vecDynamicObj_->at(current)) != nullptr) {
+                break;
+            }
+            else {
+                step = ++current;
+            }
+        }
+        step++;
+    }
+
+
+    const std::vector<DynamicObject*>* cPos() {
+        return vecDynamicObj_ + current;
+    }
+
+    Bomb* get() {
+        if(isDone()){
+            return nullptr;
+        }else if(dynamic_cast<Bomb*>(vecDynamicObj_->at(current)) != nullptr){
+            return dynamic_cast<Bomb*>(vecDynamicObj_->at(current));
+        }else{
+            return nullptr;
+        }
+    }
+
+    bool isDone() const {
+        return (current < vecDynamicObj_->size()) ? false : true;
+    }
+
+private:
+    std::vector<DynamicObject*> const *vecDynamicObj_;
+    size_t current = 0;
+    size_t step = 0;
+
+    void first() {
+        while (!isDone()) {
+            if (dynamic_cast<Bomb*>(vecDynamicObj_->at(current)) != nullptr) {
+                break;
+            }
+            else {
+                step = ++current;
+            }
+        }
+        step++;
+    }
 };
