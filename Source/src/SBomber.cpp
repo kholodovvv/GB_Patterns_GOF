@@ -35,7 +35,7 @@ SBomber::SBomber()
   pGUI->SetFinishX(offset + width - 4);
   vecStaticObj.push_back(pGUI);
 
-  Ground* pGr = new Ground;
+  Ground* pGr = new WinterGround();
   const uint16_t groundY = maxY - 5;
   pGr->SetPos(offset + 1, groundY);
   pGr->SetWidth(width - 2);
@@ -56,19 +56,19 @@ SBomber::SBomber()
   ptank->SetPos(50, groundY - 1);
   vecStaticObj.push_back(ptank);
 
-  House* pHouse = new House;
+    HouseDirector dir;
+    HouseBuilderB houseB;
+    House* pHouse = dir.BuildHouse(houseB);
+
+    pHouse->SetWidth(13);
+    pHouse->SetPos(80, groundY - 1);
+    vecStaticObj.push_back(pHouse);
+
+  /*House* pHouse = new House;
   pHouse->SetWidth(13);
   pHouse->SetPos(80, groundY - 1);
-  vecStaticObj.push_back(pHouse);
+  vecStaticObj.push_back(pHouse);*/
 
-  /*
-  Bomb* pBomb = new Bomb;
-  pBomb->SetDirection(0.3, 1);
-  pBomb->SetSpeed(2);
-  pBomb->SetPos(51, 5);
-  pBomb->SetSize(SMALL_CRATER_SIZE);
-  vecDynamicObj.push_back(pBomb);
-  */
 }
 
 SBomber::~SBomber() {
