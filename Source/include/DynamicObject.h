@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <map>
 #include "GameObject.h"
 
 class DynamicObject : public GameObject 
@@ -14,6 +14,16 @@ public:
     inline void SetDirection(double dx, double dy) { xDirction = dx; yDirection = dy; }
     
     virtual void Move(uint16_t time) { x += xDirction * speed * time * 0.001; y += yDirection * speed * time * 0.001; };
+
+    double GetSpeed(){
+        return speed;
+    }
+
+    std::pair<double, double> GetDirection(){
+        std::pair<double, double> direction(xDirction, yDirection);
+        return direction;
+    }
+
 
 protected:
 

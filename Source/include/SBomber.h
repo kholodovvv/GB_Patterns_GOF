@@ -11,6 +11,19 @@
 
 class Command;
 
+class Visitor{
+public:
+    virtual void logPlane(Plane* pPlane) const  = 0;
+    virtual void logBomb(Bomb* pBomb) const = 0;
+    virtual ~Visitor() = default;
+};
+
+class LogVisitor: public Visitor{
+public:
+    void logBomb(Bomb* pBomb) const override;
+    void logPlane(Plane* pPlane) const override;
+};
+
 class SBomber
 {
 public:
@@ -32,7 +45,7 @@ private:
 
     void CheckPlaneAndLevelGUI();
     void CheckBombsAndGround();
-    void  CheckDestoyableObjects(Bomb* pBomb);
+    //void  CheckDestoyableObjects(Bomb* pBomb);
 
     void  DeleteDynamicObj(DynamicObject * pBomb);
     void  DeleteStaticObj(GameObject* pObj);
@@ -44,7 +57,7 @@ private:
     std::vector<Bomb*> FindAllBombs() const;
 
     void DropBomb();
-
+    LogVisitor* lV = new LogVisitor();
     void CommandExecuter(Command* pCommand);
 
     std::vector<DynamicObject*> vecDynamicObj;
@@ -98,17 +111,20 @@ public:
 
     virtual void Execute() override;
 
-    void setParams(uint16_t &bNumber, const Plane* Plane_, std::vector<DynamicObject*> &vecDynamicObject, int16_t &Score){
+    void setParams(uint16_t &bNumber, const Plane* Plane_, std::vector<DynamicObject*> &vecDynamicObject, int16_t &Score,
+                   std::vector<DestroyableGroundObject*> &vecDGO){
         this->vecDynamicObj_ = &vecDynamicObject;
         this->plane = Plane_;
         this->score = &Score;
         this->bombNumber = &bNumber;
+        this->vecDGO_ = &vecDGO;
     }
 
 private:
     uint16_t* bombNumber;
     const Plane* plane;
     std::vector<DynamicObject*>* vecDynamicObj_;
+    std::vector<DestroyableGroundObject*>* vecDGO_;
     int16_t* score;
 };
 

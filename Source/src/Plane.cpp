@@ -4,6 +4,7 @@
 #include "Plane.h"
 #include "MyTools.h"
 #include "ScreenSingleton.h"
+#include "SBomber.h"
 
 void Plane::Draw() const
 {
@@ -16,4 +17,8 @@ void Plane::Draw() const
     std::cout << "\\\\\\\\";
     ScreenSingleton::getInstance().GotoXY(x + 3, y + 1);
     std::cout << "////";
+}
+
+void Plane::Accept(Visitor* v) {
+    v->logPlane(this);
 }

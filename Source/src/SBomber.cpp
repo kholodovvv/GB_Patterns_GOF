@@ -41,20 +41,20 @@ SBomber::SBomber()
   pGr->SetWidth(width - 2);
   vecStaticObj.push_back(pGr);
 
-  TankAdapter* ptank = new TankAdapter;
+  /*TankAdapter* ptank = new TankAdapter;
   ptank->SetWidth(13);
   ptank->SetPos(30, groundY - 1);
-  vecStaticObj.push_back(ptank);
+  vecStaticObj.push_back(ptank);*/
 
-  /*Tank* pTank = new Tank;
+  Tank* pTank = new Tank;
   pTank->SetWidth(13);
   pTank->SetPos(30, groundY - 1);
-  vecStaticObj.push_back(pTank);*/
+  vecStaticObj.push_back(pTank);
 
-  ptank = new TankAdapter;
-  ptank->SetWidth(13);
-  ptank->SetPos(50, groundY - 1);
-  vecStaticObj.push_back(ptank);
+  pTank = new Tank;
+  pTank->SetWidth(13);
+  pTank->SetPos(50, groundY - 1);
+  vecStaticObj.push_back(pTank);
 
     HouseDirector dir;
     HouseBuilderB houseB;
@@ -83,6 +83,8 @@ SBomber::~SBomber() {
       delete vecStaticObj[i];
     }
   }
+
+  delete lV;
 }
 
 void SBomber::MoveObjects() {
@@ -92,6 +94,13 @@ void SBomber::MoveObjects() {
   for (size_t i = 0; i < vecDynamicObj.size(); i++) {
     if (vecDynamicObj[i] != nullptr) {
       vecDynamicObj[i]->Move(deltaTime);
+
+        if(dynamic_cast<Bomb*>(vecDynamicObj[i]) != nullptr) {
+            dynamic_cast<Bomb*>(vecDynamicObj[i])->Accept(lV); //<--
+        }else {
+            dynamic_cast<Plane*>(vecDynamicObj[i])->Accept(lV); //<--
+        }
+
     }
   }
 };
@@ -112,18 +121,23 @@ void SBomber::CheckPlaneAndLevelGUI() {
 
 void SBomber::CheckBombsAndGround() {
   std::vector<Bomb*> vecBombs = FindAllBombs();
+
   Ground* pGround = FindGround();
   const double y = pGround->GetY();
   for (size_t i = 0; i < vecBombs.size(); i++) {
-    if (vecBombs[i]->GetY() >= y) {
+    if (vecBombs[i]->GetY() >= y) { //Пересечение бомбы с землёй
       pGround->AddCrater(vecBombs[i]->GetX());
-      CheckDestoyableObjects(vecBombs[i]);
+        if(vecBombs[i]->CheckDestoyableObjects() != nullptr){ //Пересечение бомбы с разрушаемым объектом
+            score += vecBombs[i]->CheckDestoyableObjects()->GetScore();
+            DeleteStaticObj(vecBombs[i]->CheckDestoyableObjects());
+        }
       DeleteDynamicObj(vecBombs[i]);
     }
   }
+
 }
 
-void SBomber::CheckDestoyableObjects(Bomb* pBomb) {
+/*void SBomber::CheckDestoyableObjects(Bomb* pBomb) {
   std::vector<DestroyableGroundObject*> vecDestoyableObjects =
       FindDestoyableGroundObjects();
   const double size = pBomb->GetWidth();
@@ -136,7 +150,7 @@ void SBomber::CheckDestoyableObjects(Bomb* pBomb) {
       DeleteStaticObj(vecDestoyableObjects[i]);
     }
   }
-}
+}*/
 
 void SBomber::CommandExecuter(Command* pCommand){
     pCommand->Execute();
@@ -194,12 +208,12 @@ void SBomber::DeleteStaticObj(GameObject* pObj) {
 
 std::vector<DestroyableGroundObject*> SBomber::FindDestoyableGroundObjects() const {
   std::vector<DestroyableGroundObject*> vec;
-  TankAdapter* ptank;
+  Tank* pTank;
   House* pHouse;
   for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    ptank = dynamic_cast<TankAdapter*>(vecStaticObj[i]);
-    if (ptank != nullptr) {
-      vec.push_back(ptank);
+    pTank = dynamic_cast<Tank*>(vecStaticObj[i]);
+    if (pTank != nullptr) {
+      vec.push_back(pTank);
       continue;
     }
 
@@ -259,6 +273,18 @@ LevelGUI* SBomber::FindLevelGUI() const {
   }
 
   return nullptr;
+}
+
+void LogVisitor::logBomb(Bomb* pBomb) const{
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb speed = ", pBomb->GetSpeed());
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb Direction X = ", pBomb->GetDirection().first);
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb Direction Y = ", pBomb->GetDirection().second);
+}
+
+void LogVisitor::logPlane(Plane* pPlane) const{
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane speed = ", pPlane->GetSpeed());
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane Direction X = ", pPlane->GetDirection().first);
+    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane Direction Y = ", pPlane->GetDirection().second);
 }
 
 void SBomber::ProcessKBHit() {
@@ -359,8 +385,10 @@ void SBomber::DropBomb() {
   }*/
 
  const Plane* pPlane = FindPlane();
+ std::vector<DestroyableGroundObject*> vecDGObject = SBomber::FindDestoyableGroundObjects();
+
  DropBombs* drp = new DropBombs();
- drp->setParams(bombsNumber, pPlane, vecDynamicObj, score);
+ drp->setParams(bombsNumber, pPlane, vecDynamicObj, score, vecDGObject);
  CommandExecuter(drp);
 }
 
@@ -378,6 +406,11 @@ void DropBombs::Execute() {
         pBomb->SetSpeed(2);
         pBomb->SetPos(x, y);
         pBomb->SetWidth(SMALL_CRATER_SIZE);
+
+        //Подписка на бомбу
+            for(size_t j = 0; j < vecDGO_->size(); j++){
+                pBomb->AddObserver(vecDGO_->at(j));
+            }
 
         vecDynamicObj_->push_back(pBomb);
         *bombNumber--;
