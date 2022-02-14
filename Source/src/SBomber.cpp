@@ -17,7 +17,8 @@ SBomber::SBomber()
   //MyTools::WriteToLog(std::string(__func__) + " was invoked");
     ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
 
-  Plane* p = new Plane;
+    Plane* p = ChoicePlane();
+  //Plane* p = new BigPlane;
   p->SetDirection(1, 0.1);
   p->SetSpeed(4);
   p->SetPos(5, 10);
@@ -41,17 +42,21 @@ SBomber::SBomber()
   pGr->SetWidth(width - 2);
   vecStaticObj.push_back(pGr);
 
+
+  Chat* chat = new Chat;
+  chat->AddAdressee(pGUI);
   /*TankAdapter* ptank = new TankAdapter;
   ptank->SetWidth(13);
   ptank->SetPos(30, groundY - 1);
   vecStaticObj.push_back(ptank);*/
 
-  Tank* pTank = new Tank;
+  Tank* pTank = new Tank(chat);
   pTank->SetWidth(13);
   pTank->SetPos(30, groundY - 1);
+
   vecStaticObj.push_back(pTank);
 
-  pTank = new Tank;
+  pTank = new Tank(chat);
   pTank->SetWidth(13);
   pTank->SetPos(50, groundY - 1);
   vecStaticObj.push_back(pTank);
@@ -416,4 +421,36 @@ void DropBombs::Execute() {
         *bombNumber--;
         *score -= Bomb::BombCost;
     }
+}
+
+void Chat::AddMessage(std::string message) {
+    if(!message.empty()){
+        addressee->QueueTankMessage.push(message);
+    }
+}
+
+void Chat::SendMessage(){
+    addressee->DrawMessage();
+}
+
+void Chat::AddAdressee(LevelGUI* Addressee) {
+    addressee = Addressee;
+}
+
+Plane *SBomber::ChoicePlane() {
+    srand(time(0));
+    int number = 0;
+    number = rand()%(2 + 0);
+
+    if(number == 0){
+        Plane* p = new BigPlane;
+        return p;
+    }else if(number == 1){
+        Plane* p = new ColorPlane;
+        return p;
+    }else{
+        Plane* p = new Plane;
+        return p;
+    }
+
 }

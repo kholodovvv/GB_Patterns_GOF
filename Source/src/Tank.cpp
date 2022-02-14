@@ -1,12 +1,16 @@
 
 #include <iostream>
+#include <random>
 
 #include "Tank.h"
-#include "MyTools.h"
 #include "ScreenSingleton.h"
 
 using namespace std;
-//using namespace MyTools;
+
+int GeneratorNumbers(){
+    srand(time(0));
+    return rand()%(3 + 0);
+}
 
 bool Tank::isInside(double x1, double x2) const
 {
@@ -42,6 +46,9 @@ void Tank::Draw() const
 	cout << "    #####";
 	ScreenSingleton::getInstance().GotoXY(x,y);
 	cout << " ###########";
+
+    pChat->AddMessage(messages[GeneratorNumbers()]);
+    pChat->SendMessage();
 }
 
 void TankAdaptee::Paint() const{

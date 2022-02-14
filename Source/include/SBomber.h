@@ -56,6 +56,8 @@ private:
     std::vector<DestroyableGroundObject*> FindDestoyableGroundObjects() const;
     std::vector<Bomb*> FindAllBombs() const;
 
+    Plane *  ChoicePlane();
+
     void DropBomb();
     LogVisitor* lV = new LogVisitor();
     void CommandExecuter(Command* pCommand);
@@ -193,4 +195,21 @@ private:
         }
         step++;
     }
+};
+
+
+class Chat{
+public:
+
+    void AddMessage(std::string message);
+    void AddAdressee(LevelGUI* Addressee);
+    void SendMessage();
+    ~Chat() {
+        delete addressee;
+    }
+
+private:
+    //Tank* sender;
+    LevelGUI* addressee;
+    std::vector<std::string> vecMessages;
 };

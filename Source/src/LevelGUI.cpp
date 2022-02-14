@@ -6,6 +6,7 @@
 
 void LevelGUI::Draw() const
 {
+
     ScreenSingleton::getInstance().SetColor(CC_White);
 
     ScreenSingleton::getInstance().GotoXY(x, y);
@@ -38,6 +39,8 @@ void LevelGUI::Draw() const
     std::cout << "BombsNum: " << bombsNumber;
     ScreenSingleton::getInstance().GotoXY(62, 1);
     std::cout << "Score: " << score;
+
+
 }
 
 void  LevelGUI::SetParam(uint64_t passedTimeNew, uint64_t fpsNew, uint16_t bombsNumberNew, int16_t scoreNew)
@@ -46,4 +49,11 @@ void  LevelGUI::SetParam(uint64_t passedTimeNew, uint64_t fpsNew, uint16_t bombs
     fps = fpsNew;
     bombsNumber = bombsNumberNew;
     score = scoreNew;
+}
+
+void LevelGUI::DrawMessage() {
+    ScreenSingleton::getInstance().SetColor(CC_White);
+    ScreenSingleton::getInstance().GotoXY(width / 2, height - 6);
+    std::cout << QueueTankMessage.front();
+    QueueTankMessage.pop();
 }
