@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 //namespace MyTools {
 
@@ -14,6 +16,17 @@ void WriteToLog(const std::string& str, int n);
 
 void WriteToLog(const std::string& str, double d);
 */
+
+
+class _FileLogger{ //RAII
+    std::ofstream logOut;
+public:
+    _FileLogger(std::string FileName);
+    ~_FileLogger();
+    void WriteToLog(const std::string& str);
+    void WriteToLog(const std::string& str, int n);
+    void WriteToLog(const std::string& str, double d);
+};
 
 class FileLogger{ //Интерфейс
 public:

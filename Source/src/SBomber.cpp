@@ -1,31 +1,26 @@
 
 #include "MyTools.h"
 #include "SBomber.h"
-#include "Bomb.h"
-#include "Ground.h"
-#include "Tank.h"
-#include "House.h"
 #include "ScreenSingleton.h"
-#include "enums/CraterSize.h"
 #include <chrono>
-#include <thread>
 #include <iostream>
+#include "SBomberImpl.h"
 
-SBomber::SBomber()
-  : exitFlag(false), startTime(0), finishTime(0), deltaTime(0), passedTime(0),
-    fps(0), bombsNumber(10), score(0) {
-  //MyTools::WriteToLog(std::string(__func__) + " was invoked");
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
+extern _FileLogger logger;
 
-    Plane* p = ChoicePlane();
+SBomber::SBomber(): pSBomberImpl(new SBomberImpl()) {
+
+    logger.WriteToLog(std::string(__func__) + " was invoked");
+
+    Plane* p = pSBomberImpl->ChoicePlane();
   //Plane* p = new BigPlane;
   p->SetDirection(1, 0.1);
   p->SetSpeed(4);
   p->SetPos(5, 10);
-  vecDynamicObj.push_back(p);
+  pSBomberImpl->vecDynamicObj.push_back(p);
 
   LevelGUI* pGUI = new LevelGUI;
-  pGUI->SetParam(passedTime, fps, bombsNumber, score);
+  pGUI->SetParam(pSBomberImpl->passedTime, pSBomberImpl->fps, pSBomberImpl->bombsNumber, pSBomberImpl->score);
   const uint16_t maxX = ScreenSingleton::getInstance().GetMaxX();
   const uint16_t maxY = ScreenSingleton::getInstance().GetMaxY();
   const uint16_t offset = 3;
@@ -34,32 +29,27 @@ SBomber::SBomber()
   pGUI->SetWidth(width);
   pGUI->SetHeight(maxY - 4);
   pGUI->SetFinishX(offset + width - 4);
-  vecStaticObj.push_back(pGUI);
+  pSBomberImpl->vecStaticObj.push_back(pGUI);
 
   Ground* pGr = new WinterGround();
   const uint16_t groundY = maxY - 5;
   pGr->SetPos(offset + 1, groundY);
   pGr->SetWidth(width - 2);
-  vecStaticObj.push_back(pGr);
-
+  pSBomberImpl->vecStaticObj.push_back(pGr);
 
   Chat* chat = new Chat;
   chat->AddAdressee(pGUI);
-  /*TankAdapter* ptank = new TankAdapter;
-  ptank->SetWidth(13);
-  ptank->SetPos(30, groundY - 1);
-  vecStaticObj.push_back(ptank);*/
 
   Tank* pTank = new Tank(chat);
   pTank->SetWidth(13);
   pTank->SetPos(30, groundY - 1);
 
-  vecStaticObj.push_back(pTank);
+  pSBomberImpl->vecStaticObj.push_back(pTank);
 
   pTank = new Tank(chat);
   pTank->SetWidth(13);
   pTank->SetPos(50, groundY - 1);
-  vecStaticObj.push_back(pTank);
+  pSBomberImpl->vecStaticObj.push_back(pTank);
 
     HouseDirector dir;
     HouseBuilderB houseB;
@@ -67,230 +57,39 @@ SBomber::SBomber()
 
     pHouse->SetWidth(13);
     pHouse->SetPos(80, groundY - 1);
-    vecStaticObj.push_back(pHouse);
-
-  /*House* pHouse = new House;
-  pHouse->SetWidth(13);
-  pHouse->SetPos(80, groundY - 1);
-  vecStaticObj.push_back(pHouse);*/
+    pSBomberImpl->vecStaticObj.push_back(pHouse);
 
 }
 
 SBomber::~SBomber() {
-  for (size_t i = 0; i < vecDynamicObj.size(); i++) {
-    if (vecDynamicObj[i] != nullptr) {
-      delete vecDynamicObj[i];
-    }
-  }
-
-  for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    if (vecStaticObj[i] != nullptr) {
-      delete vecStaticObj[i];
-    }
-  }
-
-  delete lV;
+    delete pSBomberImpl;
 }
 
 void SBomber::MoveObjects() {
- //MyTools::WriteToLog(std::string(__func__) + " was invoked");
- ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
 
-  for (size_t i = 0; i < vecDynamicObj.size(); i++) {
-    if (vecDynamicObj[i] != nullptr) {
-      vecDynamicObj[i]->Move(deltaTime);
+ logger.WriteToLog(std::string(__func__) + " was invoked");
 
-        if(dynamic_cast<Bomb*>(vecDynamicObj[i]) != nullptr) {
-            dynamic_cast<Bomb*>(vecDynamicObj[i])->Accept(lV); //<--
-        }else {
-            dynamic_cast<Plane*>(vecDynamicObj[i])->Accept(lV); //<--
+    for (size_t i = 0; i < pSBomberImpl->vecDynamicObj.size(); i++) {
+        if (pSBomberImpl->vecDynamicObj[i] != nullptr) {
+            pSBomberImpl->vecDynamicObj[i]->Move(pSBomberImpl->deltaTime);
+
+            if(dynamic_cast<Bomb*>(pSBomberImpl->vecDynamicObj[i]) != nullptr) {
+                dynamic_cast<Bomb*>(pSBomberImpl->vecDynamicObj[i])->Accept(pSBomberImpl->lV);
+            }else {
+                dynamic_cast<Plane*>(pSBomberImpl->vecDynamicObj[i])->Accept(pSBomberImpl->lV);
+            }
+
         }
-
     }
-  }
 };
 
 void SBomber::CheckObjects() {
-  //MyTools::WriteToLog(std::string(__func__) + " was invoked");
-  ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
+  logger.WriteToLog(std::string(__func__) + " was invoked");
 
-  CheckPlaneAndLevelGUI();
-  CheckBombsAndGround();
+    pSBomberImpl->CheckPlaneAndLevelGUI();
+    pSBomberImpl->CheckBombsAndGround();
 };
 
-void SBomber::CheckPlaneAndLevelGUI() {
-  if (FindPlane()->GetX() > FindLevelGUI()->GetFinishX()) {
-    exitFlag = true;
-  }
-}
-
-void SBomber::CheckBombsAndGround() {
-  std::vector<Bomb*> vecBombs = FindAllBombs();
-
-  Ground* pGround = FindGround();
-  const double y = pGround->GetY();
-  for (size_t i = 0; i < vecBombs.size(); i++) {
-    if (vecBombs[i]->GetY() >= y) { //Пересечение бомбы с землёй
-      pGround->AddCrater(vecBombs[i]->GetX());
-        if(vecBombs[i]->CheckDestoyableObjects() != nullptr){ //Пересечение бомбы с разрушаемым объектом
-            score += vecBombs[i]->CheckDestoyableObjects()->GetScore();
-            DeleteStaticObj(vecBombs[i]->CheckDestoyableObjects());
-        }
-      DeleteDynamicObj(vecBombs[i]);
-    }
-  }
-
-}
-
-/*void SBomber::CheckDestoyableObjects(Bomb* pBomb) {
-  std::vector<DestroyableGroundObject*> vecDestoyableObjects =
-      FindDestoyableGroundObjects();
-  const double size = pBomb->GetWidth();
-  const double size_2 = size / 2;
-  for (size_t i = 0; i < vecDestoyableObjects.size(); i++) {
-    const double x1 = pBomb->GetX() - size_2;
-    const double x2 = x1 + size;
-    if (vecDestoyableObjects[i]->isInside(x1, x2)) {
-      score += vecDestoyableObjects[i]->GetScore();
-      DeleteStaticObj(vecDestoyableObjects[i]);
-    }
-  }
-}*/
-
-void SBomber::CommandExecuter(Command* pCommand){
-    pCommand->Execute();
-    delete pCommand;
-}
-
-void SBomber::DeleteDynamicObj(DynamicObject* pObj) {
-  /*auto it = vecDynamicObj.begin();
-  for (; it != vecDynamicObj.end(); it++) {
-    if (*it == pObj) {
-      vecDynamicObj.erase(it);
-      break;
-    }
-  }*/
-
-  DeleteDynamicObject* dlt = new DeleteDynamicObject();
-  dlt->setParams(vecDynamicObj, pObj);
-  SBomber::CommandExecuter(dlt);
-}
-
-void DeleteDynamicObject::Execute(){
-    auto it = vecDynamicObj_->begin();
-    for (; it != vecDynamicObj_->end(); it++) {
-        if (*it == dObject) {
-            vecDynamicObj_->erase(it);
-            break;
-        }
-    }
-}
-
-void DeleteStaticObject::Execute() {
-    auto it = vecStaticObj_->begin();
-    for (; it != vecStaticObj_->end(); it++) {
-        if (*it == gObject) {
-            vecStaticObj_->erase(it);
-            break;
-        }
-    }
-}
-
-void SBomber::DeleteStaticObj(GameObject* pObj) {
-  /*auto it = vecStaticObj.begin();
-  for (; it != vecStaticObj.end(); it++) {
-    if (*it == pObj) {
-      vecStaticObj.erase(it);
-      break;
-    }
-  }*/
-
-    DeleteStaticObject* dso = new DeleteStaticObject();
-    dso->setParams(vecStaticObj, pObj);
-    SBomber::CommandExecuter(dso);
-
-}
-
-std::vector<DestroyableGroundObject*> SBomber::FindDestoyableGroundObjects() const {
-  std::vector<DestroyableGroundObject*> vec;
-  Tank* pTank;
-  House* pHouse;
-  for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    pTank = dynamic_cast<Tank*>(vecStaticObj[i]);
-    if (pTank != nullptr) {
-      vec.push_back(pTank);
-      continue;
-    }
-
-    pHouse = dynamic_cast<House*>(vecStaticObj[i]);
-    if (pHouse != nullptr) {
-      vec.push_back(pHouse);
-      continue;
-    }
-  }
-
-  return vec;
-}
-
-Ground* SBomber::FindGround() const {
-  Ground* pGround;
-
-  for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    pGround = dynamic_cast<Ground*>(vecStaticObj[i]);
-    if (pGround != nullptr) {
-      return pGround;
-    }
-  }
-
-  return nullptr;
-}
-
-std::vector<Bomb*> SBomber::FindAllBombs() const {
-  std::vector<Bomb*> vecBombs;
-
-  BombIterator* it = new BombIterator(vecDynamicObj);
-
-  for(;it->cPos() != it->end(); it->next()){
-      vecBombs.push_back(it->get());
-  }
-
-  delete it;
-  return vecBombs;
-}
-
-Plane* SBomber::FindPlane() const {
-  for (size_t i = 0; i < vecDynamicObj.size(); i++) {
-    Plane* p = dynamic_cast<Plane*>(vecDynamicObj[i]);
-    if (p != nullptr) {
-      return p;
-    }
-  }
-
-  return nullptr;
-}
-
-LevelGUI* SBomber::FindLevelGUI() const {
-  for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    LevelGUI* p = dynamic_cast<LevelGUI*>(vecStaticObj[i]);
-    if (p != nullptr) {
-      return p;
-    }
-  }
-
-  return nullptr;
-}
-
-void LogVisitor::logBomb(Bomb* pBomb) const{
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb speed = ", pBomb->GetSpeed());
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb Direction X = ", pBomb->GetDirection().first);
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Bomb Direction Y = ", pBomb->GetDirection().second);
-}
-
-void LogVisitor::logPlane(Plane* pPlane) const{
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane speed = ", pPlane->GetSpeed());
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane Direction X = ", pPlane->GetDirection().first);
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " Plane Direction Y = ", pPlane->GetDirection().second);
-}
 
 void SBomber::ProcessKBHit() {
   int c = getchar();
@@ -299,29 +98,28 @@ void SBomber::ProcessKBHit() {
     c = getchar();
   }
 
-  //MyTools::WriteToLog(std::string(__func__) + " was invoked. key = ", c);
-  ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked. key = ", c);
+  logger.WriteToLog(std::string(__func__) + " was invoked. key = ", c);
 
   switch (c) {
 
     case 27: // esc
-      exitFlag = true;
+      pSBomberImpl->exitFlag = true;
       break;
 
     case 72: // up
-      FindPlane()->ChangePlaneY(-0.25);
+        pSBomberImpl->FindPlane()->ChangePlaneY(-0.25);
       break;
 
     case 80: // down
-      FindPlane()->ChangePlaneY(0.25);
+        pSBomberImpl->FindPlane()->ChangePlaneY(0.25);
       break;
 
     case 'b':
-      DropBomb();
+        pSBomberImpl->DropBomb();
       break;
 
     case 'B':
-      DropBomb();
+        pSBomberImpl->DropBomb();
       break;
 
     default:
@@ -330,127 +128,46 @@ void SBomber::ProcessKBHit() {
 }
 
 void SBomber::DrawFrame() {
-  //MyTools::WriteToLog(std::string(__func__) + " was invoked");
-  ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
 
-  for (size_t i = 0; i < vecDynamicObj.size(); i++) {
-    if (vecDynamicObj[i] != nullptr) {
-      vecDynamicObj[i]->Draw();
+  logger.WriteToLog(std::string(__func__) + " was invoked");
+
+
+    for (size_t i = 0; i < pSBomberImpl->vecDynamicObj.size(); i++) {
+        if (pSBomberImpl->vecDynamicObj[i] != nullptr) {
+            pSBomberImpl->vecDynamicObj[i]->Draw();
+        }
     }
-  }
 
-  for (size_t i = 0; i < vecStaticObj.size(); i++) {
-    if (vecStaticObj[i] != nullptr) {
-      vecStaticObj[i]->Draw();
+    for (size_t i = 0; i < pSBomberImpl->vecStaticObj.size(); i++) {
+        if (pSBomberImpl->vecStaticObj[i] != nullptr) {
+            pSBomberImpl->vecStaticObj[i]->Draw();
+        }
     }
-  }
 
-  ScreenSingleton::getInstance().GotoXY(0, 0);
-  fps++;
+    ScreenSingleton::getInstance().GotoXY(0, 0);
+    pSBomberImpl->fps++;
 
-  FindLevelGUI()->SetParam(passedTime, fps, bombsNumber, score);
+    pSBomberImpl->FindLevelGUI()->SetParam(pSBomberImpl->passedTime, pSBomberImpl->fps, pSBomberImpl->bombsNumber, pSBomberImpl->score);
 }
 
 void SBomber::TimeStart() {
-  //MyTools::WriteToLog(std::string(__func__) + " was invoked");
-  ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
-  startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+  logger.WriteToLog(std::string(__func__) + " was invoked");
+
+pSBomberImpl->startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
 void SBomber::TimeFinish() {
-  finishTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-  deltaTime = uint16_t(finishTime - startTime);
-  passedTime += deltaTime;
 
-  //MyTools::WriteToLog(std::string(__func__) + " deltaTime = ", (int)deltaTime);
-  ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " deltaTime = ", (int)deltaTime);
+pSBomberImpl->finishTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+pSBomberImpl->deltaTime = uint16_t(pSBomberImpl->finishTime - pSBomberImpl->startTime);
+pSBomberImpl->passedTime += pSBomberImpl->deltaTime;
+
+logger.WriteToLog(std::string(__func__) + " deltaTime = ", (int)pSBomberImpl->deltaTime);
 }
 
-void SBomber::DropBomb() {
-/*  if (bombsNumber > 0) {
-    //MyTools::WriteToLog(std::string(__func__) + " was invoked");
-    ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
-
-    Plane* pPlane = FindPlane();
-    double x = pPlane->GetX() + 4;
-    double y = pPlane->GetY() + 2;
-
-    //Bomb* pBomb = new Bomb;
-    BombDecorator *pBomb = new BombDecorator(new Bomb);
-    pBomb->SetDirection(0.3, 1);
-    pBomb->SetSpeed(2);
-    pBomb->SetPos(x, y);
-    pBomb->SetWidth(SMALL_CRATER_SIZE);
-
-    vecDynamicObj.push_back(pBomb);
-    bombsNumber--;
-    score -= Bomb::BombCost;
-  }*/
-
- const Plane* pPlane = FindPlane();
- std::vector<DestroyableGroundObject*> vecDGObject = SBomber::FindDestoyableGroundObjects();
-
- DropBombs* drp = new DropBombs();
- drp->setParams(bombsNumber, pPlane, vecDynamicObj, score, vecDGObject);
- CommandExecuter(drp);
-}
-
-void DropBombs::Execute() {
-    if (*bombNumber > 0) {
-
-        ProxyLoggerSingletone::getInstance().WriteToLog(std::string(__func__) + " was invoked");
-
-        double x = plane->GetX() + 4;
-        double y = plane->GetY() + 2;
-
-        //BombDecorator *pBomb = new BombDecorator(new Bomb);
-        Bomb* pBomb = new Bomb;
-        pBomb->SetDirection(0.3, 1);
-        pBomb->SetSpeed(2);
-        pBomb->SetPos(x, y);
-        pBomb->SetWidth(SMALL_CRATER_SIZE);
-
-        //Подписка на бомбу
-            for(size_t j = 0; j < vecDGO_->size(); j++){
-                pBomb->AddObserver(vecDGO_->at(j));
-            }
-
-        vecDynamicObj_->push_back(pBomb);
-        *bombNumber--;
-        *score -= Bomb::BombCost;
-    }
-}
-
-void Chat::AddMessage(std::string message) {
-    if(!message.empty()){
-        addressee->QueueTankMessage.push(message);
-    }
-}
-
-void Chat::SendMessage(){
-    addressee->DrawMessage();
-}
-
-void Chat::AddAdressee(LevelGUI* Addressee) {
-    addressee = Addressee;
-}
-
-Plane *SBomber::ChoicePlane() {
-    srand(time(0));
-    int number = 0;
-    number = rand()%(2 + 0);
-
-    if(number == 0){
-        Plane* p = new BigPlane;
-        return p;
-    }else if(number == 1){
-        Plane* p = new ColorPlane;
-        return p;
-    }else{
-        Plane* p = new Plane;
-        return p;
-    }
-
+bool SBomber::GetExitFlag() const {
+    return pSBomberImpl->exitFlag;
 }

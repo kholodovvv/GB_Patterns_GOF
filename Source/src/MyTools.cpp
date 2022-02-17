@@ -10,10 +10,31 @@
 #include <stdio.h>
 #include <sstream>
 
-
 //namespace MyTools {
 
-std::ofstream logOut;
+//std::ofstream logOut;
+
+_FileLogger::_FileLogger(std::string FileName) {
+    logOut.open(FileName, std::ios_base::out);
+}
+
+_FileLogger::~_FileLogger() {
+    if(logOut.is_open()){
+        logOut.close();
+    }
+}
+
+void _FileLogger::WriteToLog(const std::string &str) {
+    logOut << str << std::endl;
+}
+
+void _FileLogger::WriteToLog(const std::string &str, int n) {
+    logOut << str << n << std::endl;
+}
+
+void _FileLogger::WriteToLog(const std::string &str, double d) {
+    logOut << str << d << std::endl;
+}
 
 FileLogger& InternalInstance(){
     static FileLoggerSingletone theInstance;
@@ -76,7 +97,7 @@ void ProxyLoggerSingletone::WriteToLog(const std::string &str, double d) {
     countOperation += 1;
     std::ostringstream oss;
     oss << countOperation;
-    
+
     InternalInstance().WriteToLog(oss.str() + ": " + str, d);
 
     time(&finishTime);
@@ -84,12 +105,12 @@ void ProxyLoggerSingletone::WriteToLog(const std::string &str, double d) {
     passedTime += deltaTime;
 }
 
-void FileLoggerSingletone::OpenLogFile(const std::string &FN) { logOut.open(FN, std::ios_base::out); }
+void FileLoggerSingletone::OpenLogFile(const std::string &FN) { /*logOut.open(FN, std::ios_base::out);*/ }
 
 void FileLoggerSingletone::CloseLogFile() {
-  if (logOut.is_open()) {
+ /* if (logOut.is_open()) {
     logOut.close();
-  }
+  }*/
 }
 
 std::string GetCurDateTime() {
@@ -100,21 +121,21 @@ std::string GetCurDateTime() {
 }
 
 void FileLoggerSingletone::WriteToLog(const std::string &str) {
-  if (logOut.is_open()) {
+/*  if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << std::endl;
-  }
+  }*/
 }
 
 void FileLoggerSingletone::WriteToLog(const std::string &str, int n) {
-  if (logOut.is_open()) {
+ /* if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << n << std::endl;
-  }
+  }*/
 }
 
 void FileLoggerSingletone::WriteToLog(const std::string &str, double d) {
-  if (logOut.is_open()) {
+ /* if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << d << std::endl;
-  }
+  }*/
 }
 
 FileLogger& FileLoggerSingletone::getInstance() {
