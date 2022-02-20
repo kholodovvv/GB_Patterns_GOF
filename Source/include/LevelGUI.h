@@ -1,13 +1,15 @@
 #pragma once
 
 #include <stdint.h>
+#include <queue>
+#include <string>
 
 #include "GameObject.h"
 
 class LevelGUI : public GameObject {
 public:
 
-    LevelGUI() : bombsNumber(0), score(0), passedTime(0), fps(0), height(0) { }
+    LevelGUI() : bombsNumber(0), score(0), passedTime(0), fps(0), height(0), QueueTankMessage() { }
 
     void  SetParam(uint64_t passedTimeNew, uint64_t fpsNew, uint16_t bombsNumberNew, int16_t scoreNew);
     
@@ -22,6 +24,10 @@ private:
 
     uint16_t height;
     uint16_t finishX = 109;
+
+    void DrawMessage();
+    std::queue<std::string> QueueTankMessage;
+    friend class Chat;
 
     uint64_t passedTime, fps;
     uint16_t bombsNumber;

@@ -8,18 +8,109 @@
 #include <string>
 #include <time.h>
 #include <stdio.h>
+#include <sstream>
+
+//namespace MyTools {
+
+//std::ofstream logOut;
+
+_FileLogger::_FileLogger(std::string FileName) {
+    logOut.open(FileName, std::ios_base::out);
+}
+
+_FileLogger::~_FileLogger() {
+    if(logOut.is_open()){
+        logOut.close();
+    }
+}
+
+void _FileLogger::WriteToLog(const std::string &str) {
+    logOut << str << std::endl;
+}
+
+void _FileLogger::WriteToLog(const std::string &str, int n) {
+    logOut << str << n << std::endl;
+}
+
+void _FileLogger::WriteToLog(const std::string &str, double d) {
+    logOut << str << d << std::endl;
+}
+
+FileLogger& InternalInstance(){
+    static FileLoggerSingletone theInstance;
+    return theInstance;
+}
 
 
-namespace MyTools {
+void ProxyLoggerSingletone::OpenLogFile(const std::string &FN){
+    time(&startTime);
 
-std::ofstream logOut;
+    InternalInstance().OpenLogFile(FN);
 
-void OpenLogFile(const std::string &FN) { logOut.open(FN, std::ios_base::out); }
+    time(&finishTime);
+    deltaTime = difftime(finishTime, startTime);
+    passedTime += deltaTime;
+    countOperation += 1;
+}
 
-void CloseLogFile() {
-  if (logOut.is_open()) {
+void ProxyLoggerSingletone::CloseLogFile() {
+    time(&startTime);
+
+    InternalInstance().CloseLogFile();
+
+    time(&finishTime);
+    deltaTime = difftime(finishTime, startTime);
+    passedTime += deltaTime;
+    countOperation += 1;
+    std::cout << "average execution time: ";
+    std::cout << passedTime / countOperation << " sec" << std::endl;
+}
+
+void ProxyLoggerSingletone::WriteToLog(const std::string &str) {
+    time(&startTime);
+    countOperation += 1;
+
+    std::ostringstream oss;
+    oss << countOperation;
+    InternalInstance().WriteToLog(oss.str() + ": " + str);
+
+    time(&finishTime);
+    deltaTime = difftime(finishTime, startTime);
+    passedTime += deltaTime;
+}
+
+void ProxyLoggerSingletone::WriteToLog(const std::string &str, int n) {
+    time(&startTime);
+    countOperation += 1;
+    std::ostringstream oss;
+    oss << countOperation;
+
+    InternalInstance().WriteToLog(oss.str() + ": " + str, n);
+
+    time(&finishTime);
+    deltaTime = difftime(finishTime, startTime);
+    passedTime += deltaTime;
+}
+
+void ProxyLoggerSingletone::WriteToLog(const std::string &str, double d) {
+    time(&startTime);
+    countOperation += 1;
+    std::ostringstream oss;
+    oss << countOperation;
+
+    InternalInstance().WriteToLog(oss.str() + ": " + str, d);
+
+    time(&finishTime);
+    deltaTime = difftime(finishTime, startTime);
+    passedTime += deltaTime;
+}
+
+void FileLoggerSingletone::OpenLogFile(const std::string &FN) { /*logOut.open(FN, std::ios_base::out);*/ }
+
+void FileLoggerSingletone::CloseLogFile() {
+ /* if (logOut.is_open()) {
     logOut.close();
-  }
+  }*/
 }
 
 std::string GetCurDateTime() {
@@ -29,22 +120,26 @@ std::string GetCurDateTime() {
   return std::string(buf);
 }
 
-void WriteToLog(const std::string &str) {
-  if (logOut.is_open()) {
+void FileLoggerSingletone::WriteToLog(const std::string &str) {
+/*  if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << std::endl;
-  }
+  }*/
 }
 
-void WriteToLog(const std::string &str, int n) {
-  if (logOut.is_open()) {
+void FileLoggerSingletone::WriteToLog(const std::string &str, int n) {
+ /* if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << n << std::endl;
-  }
+  }*/
 }
 
-void WriteToLog(const std::string &str, double d) {
-  if (logOut.is_open()) {
+void FileLoggerSingletone::WriteToLog(const std::string &str, double d) {
+ /* if (logOut.is_open()) {
     logOut << GetCurDateTime() << " - " << str << d << std::endl;
-  }
+  }*/
 }
 
-} // namespace MyTools
+FileLogger& FileLoggerSingletone::getInstance() {
+    return ProxyLoggerSingletone::getInstance();
+}
+//} // namespace MyTools
+
