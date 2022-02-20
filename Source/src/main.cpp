@@ -19,7 +19,7 @@ int _kbhit() {
     static const int STDIN = 0;
     static bool initialized = false;
 
-    if (! initialized) {
+    if (!initialized) {
         // Use termios to turn off line buffering
         termios term;
         tcgetattr(STDIN, &term);
@@ -31,8 +31,9 @@ int _kbhit() {
 
     int bytesWaiting;
     ioctl(STDIN, FIONREAD, &bytesWaiting);
+
     return bytesWaiting;
-}
+    }
 
 #endif
 
@@ -63,6 +64,7 @@ int main(void) {
 
   } while (!game.GetExitFlag());
 
+  game.AnimateScrolling();
   //MyTools::CloseLogFile();
   //FileLoggerSingletone::getInstance().CloseLogFile(); //Вызов метода через реальный объект
   //ProxyLoggerSingletone::getInstance().CloseLogFile();

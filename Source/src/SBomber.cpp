@@ -5,8 +5,10 @@
 #include <chrono>
 #include <iostream>
 #include "SBomberImpl.h"
+#include <thread>
 
 extern _FileLogger logger;
+extern int _kbhit();
 
 SBomber::SBomber(): pSBomberImpl(new SBomberImpl()) {
 
@@ -122,6 +124,14 @@ void SBomber::ProcessKBHit() {
         pSBomberImpl->DropBomb();
       break;
 
+      case 'd':
+          pSBomberImpl->DropSimpleCloneBomb();
+          break;
+
+      case 'D':
+          pSBomberImpl->CloneDestoyableObject();
+          break;
+
     default:
       break;
   }
@@ -170,4 +180,59 @@ logger.WriteToLog(std::string(__func__) + " deltaTime = ", (int)pSBomberImpl->de
 
 bool SBomber::GetExitFlag() const {
     return pSBomberImpl->exitFlag;
+}
+
+/*void SBomber::AnimateScrolling() {
+    pSBomberImpl->AnimateScrolling();
+}*/
+void SBomber::AnimateScrolling() {
+
+    std::vector<std::string> Titles {"General Producer:", "Ivan Petrov",
+                                     "                              ", "The Script:", "Gennadii Vetrov", "                              ",
+                                     "Painters:", "Valentina Korutina", "Svetlana Palkina",
+                                     "                              ", "Programmres:", "Alexei Krilov", "Mike Lugovoi",
+                                     "                              "};
+
+
+    std::vector<size_t> curPosTitlesY;
+    const uint16_t maxY = ScreenSingleton::getInstance().GetMaxY();
+    const uint16_t maxX = ScreenSingleton::getInstance().GetMaxX();
+
+    const uint16_t width = (maxX - 7) / 2;
+    const uint16_t posX = width - (width / 2);
+
+    const uint16_t startPosY = Titles.size();
+    const uint16_t finishPosY = maxY - Titles.size();
+
+    size_t countTitles = 0;
+    curPosTitlesY.push_back(startPosY);
+
+    while(!Titles.empty() && !_kbhit()){
+
+        ScreenSingleton::getInstance().ClrScr();
+
+        for(int i = 0; i <= countTitles; i++){
+            ScreenSingleton::getInstance().GotoXY(posX, curPosTitlesY[i]);
+            std::cout << Titles[i] << std::endl;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        for (int i = 0; i <= curPosTitlesY.size(); i++) {
+            curPosTitlesY[i] -= 1;
+        }
+
+        if (curPosTitlesY.front() == finishPosY) {
+            curPosTitlesY.erase(curPosTitlesY.begin());
+            Titles.erase(Titles.begin());
+            countTitles--;
+        }
+
+        if (countTitles < Titles.size() - 1) {
+            countTitles++;
+            curPosTitlesY.push_back(startPosY);
+        }
+
+    }
+
 }

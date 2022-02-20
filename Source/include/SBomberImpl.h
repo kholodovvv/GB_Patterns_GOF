@@ -54,6 +54,8 @@ public:
     Plane *  ChoicePlane();
 
     void DropBomb();
+    void DropSimpleCloneBomb();
+    void CloneDestoyableObject();
 
     uint64_t startTime, finishTime, passedTime;
     uint16_t bombsNumber, deltaTime, fps;

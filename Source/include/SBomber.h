@@ -1,6 +1,7 @@
 #pragma once
 
 class SBomberImpl;
+extern int _kbhit();
 
 class SBomber
 {
@@ -19,6 +20,7 @@ public:
     void DrawFrame();
     void MoveObjects();
     void CheckObjects();
+    void AnimateScrolling();
 
 private:
     SBomberImpl* pSBomberImpl;

@@ -51,6 +51,10 @@ void Tank::Draw() const
     pChat->SendMessage();
 }
 
+DestroyableGroundObject *Tank::Clone() const {
+    return new Tank(*this);
+}
+
 void TankAdaptee::Paint() const{
     ScreenSingleton::getInstance().SetColor(CC_Cyan);
     ScreenSingleton::getInstance().GotoXY(x, y - 3);

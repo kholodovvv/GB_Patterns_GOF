@@ -43,6 +43,10 @@ bool House::isInside(double x1, double x2) const
 	std::cout << "############";
 }*/
 
+DestroyableGroundObject *House::Clone() const {
+    return new House(*this);
+}
+
 void House::Draw() const
 {
     ScreenSingleton::getInstance().SetColor(CC_Yellow);

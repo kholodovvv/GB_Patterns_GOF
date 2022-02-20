@@ -12,7 +12,7 @@ public:
   }
 
   void Draw() const override;
-
+  virtual DestroyableGroundObject* Clone() const override;
   friend class HouseBuilderA;
   friend class HouseBuilderB;
 

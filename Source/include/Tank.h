@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "DestroyableGroundObject.h"
-#include "SBomber.h"
+#include "SBomberImpl.h"
 class Chat;
 
 
@@ -17,8 +17,8 @@ public:
 	bool  isInside(double x1, double x2) const override;
 
 	inline uint16_t GetScore() const override { return score;}
-
-	void Draw() const override;
+    virtual DestroyableGroundObject* Clone() const override;
+    void Draw() const override;
 
 private:
     Chat* pChat;

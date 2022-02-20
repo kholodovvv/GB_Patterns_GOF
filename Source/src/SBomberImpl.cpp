@@ -3,6 +3,7 @@
 //
 #include "SBomberImpl.h"
 #include "MyTools.h"
+#include "ScreenSingleton.h"
 #include "enums/CraterSize.h"
 
 extern _FileLogger logger;
@@ -166,6 +167,52 @@ void DropBombs::Execute() {
         *bombNumber--;
         *score -= Bomb::BombCost;
     }
+}
+
+void SBomberImpl::DropSimpleCloneBomb() {
+    if(bombsNumber > 0){
+        logger.WriteToLog(std::string(__func__) + " was invoked");
+
+        std::vector<Bomb*> vecBombs = FindAllBombs();
+
+        vecDynamicObj.push_back(vecBombs.back()->SimpleClone());
+        bombsNumber--;
+        score -= Bomb::BombCost;
+    }
+}
+
+void SBomberImpl::CloneDestoyableObject() {
+   std::vector<DestroyableGroundObject*> vecDestObject = FindDestoyableGroundObjects();
+    srand(time(0));
+    size_t rNum = rand()%(vecDestObject.size() + 0);
+
+   const uint16_t maxY = ScreenSingleton::getInstance().GetMaxY();
+   const uint16_t maxX = ScreenSingleton::getInstance().GetMaxX();
+   uint16_t countX = 2;
+   uint16_t countObjects = 0;
+   bool DelFlag = true;
+
+    DestroyableGroundObject* DestObj = vecDestObject[rNum]->Clone();
+    uint16_t width = DestObj->GetWidth();
+
+   while(countX != maxX){
+       for(auto obj : vecDestObject){
+           if(!obj->isInside(countX, countX + width))
+               countObjects++;
+       }
+       if(countObjects == vecDestObject.size()){
+           DestObj->SetPos(countX, maxY - 6);
+           vecStaticObj.push_back(DestObj);
+           DelFlag = false;
+           break;
+       }else{
+           countObjects = 0;
+           countX += width;
+       }
+   }
+
+    if(DelFlag) delete DestObj;
+
 }
 
 void Chat::AddMessage(std::string message) {
